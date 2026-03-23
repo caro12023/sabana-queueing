@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Study {
+  id               String               @id @default(cuid())
+  name             String
+  systemName       String
+  location         String?
+  serversCount     Int                  @default(1)
+  notes            String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  sessions         ObservationSession[]
+  customers        Customer[]
+}
+
+model ObservationSession {
+  id              String    @id @default(cuid())
+  studyId         String
+  date            DateTime
+  startTime       DateTime
+  endTime         DateTime?
+  observedMinutes Float?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  study           Study     @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  customers       Customer[]
+}
+
+model Customer {
+  id             String               @id @default(cuid())
+  customerCode   String               @unique
+  studyId        String
+  sessionId      String?
+  arrivalAt      DateTime
+  serviceStartAt DateTime?
+  serviceEndAt   DateTime?
+  serverLabel    String?
+  customerType   String?
+  notes          String?
+  status         String               @default("waiting")
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  study          Study                @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  session        ObservationSession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+}
